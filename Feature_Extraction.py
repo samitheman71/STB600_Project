@@ -73,7 +73,7 @@ if __name__ == "__main__":
     # Find_Color_in_Coin(r"Coins\no_green_Red_coin.png", "Red", [0, 97, 24], [36, 255, 255])
     # Opening(r"Coins\Red_parts.png", "Red")
     
-    Find_Color_in_Coin(r"Coins\no_green_Blue_coin.png", "Blue", [216, 77, 24], [255, 255, 255])
+    Find_Color_in_Coin(r"Coins\no_green_Blue_coin.png", "Blue", [100, 120, 30], [130, 255, 120])
     Opening(r"Coins\Blue_parts.png", "Blue")
     
     
