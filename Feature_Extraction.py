@@ -8,18 +8,40 @@ def resize(img, scale):
 def Remove_Green(img_path, name):
     image = cv2.imread(img_path)
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
     lower_green = np.array([35, 80, 40])
     upper_green = np.array([85, 255, 255])
-    mask = cv2.inRange(hsv, lower_green, upper_green)
-    mask_inv = cv2.bitwise_not(mask)
+
+    green_mask = cv2.inRange(hsv, lower_green, upper_green)
+    mask_inv = cv2.bitwise_not(green_mask)
+
+    # Remove green background
     result = cv2.bitwise_and(image, image, mask=mask_inv)
-    
-    tmp = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(tmp, 0, 255, cv2.THRESH_BINARY)
-    b, g, r = cv2.split(result)
-    rgba = [b, g, r, thresh]
-    dst = cv2.merge(rgba, 4)
-    cv2.imwrite(fr"Coins\no_green_{name}_coin.png", dst)
+
+    # === CREATE BINARY MASK OF COIN ===
+    gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
+    _, thresh = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
+
+    # === FIND LARGEST CONTOUR (THE COIN) ===
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    if not contours:
+        print(f"No coin found in {name}")
+        return
+
+    largest_contour = max(contours, key=cv2.contourArea)
+    x, y, w, h = cv2.boundingRect(largest_contour)
+
+    cropped = result[y:y+h, x:x+w]
+
+    cv2.imwrite(fr"Coins\no_green_{name}_coin.png", cropped)
+
+    # Debug preview
+    print(x, y, w, h)
+    cv2.imshow("cropped", resize(cropped, 2))
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 
 
 
@@ -62,19 +84,19 @@ if __name__ == "__main__":
     colors = ["Yellow", "Blue", "Red"]
     img_path = r"Images\Red.jpg"
 
-    # for color in colors:
-    #     Remove_Green(fr"Images\{color}.jpg", color)
+    for color in colors:
+        Remove_Green(fr"Images\{color}.jpg", color)
 
-    #     print(f"Saved Image {color} coin without green background.")
+        print(f"Saved Image {color} coin without green background.")
     
 
-    #Find_Color_in_Coin(r"Coins\no_green_Yellow_coin.png", "Yellow", [0, 97, 24], [36, 255, 255])
+    Find_Color_in_Coin(r"Coins\no_green_Yellow_coin.png", "Yellow", [0, 97, 24], [36, 255, 255])
 
-    # Find_Color_in_Coin(r"Coins\no_green_Red_coin.png", "Red", [0, 97, 24], [36, 255, 255])
+    Find_Color_in_Coin(r"Coins\no_green_Red_coin.png", "Red", [0, 97, 24], [36, 255, 255])
     # Opening(r"Coins\Red_parts.png", "Red")
     
     Find_Color_in_Coin(r"Coins\no_green_Blue_coin.png", "Blue", [100, 120, 30], [130, 255, 120])
-    Opening(r"Coins\Blue_parts.png", "Blue")
+    #Opening(r"Coins\Blue_parts.png", "Blue")
     
     
     #Opening(r"Coins\Yellow_parts.png", "Yellow")
